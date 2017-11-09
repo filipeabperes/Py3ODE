@@ -1,0 +1,6 @@
+build
+ode_notrimesh.c
+ode_trimesh.c
+_trimesh_switch.pyx
+MANIFEST
+dist

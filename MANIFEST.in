@@ -1,0 +1,11 @@
+include AUTHORS
+include INSTALL
+include README
+include LICENSE
+include LICENSE-BSD
+include ChangeLog
+include ode_trimesh.c
+include ode_notrimesh.c
+recursive-include src *.pyx
+recursive-include examples *.py
+recursive-include tests *.py

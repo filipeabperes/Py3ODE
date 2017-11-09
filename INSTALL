@@ -1,0 +1,37 @@
+Installation instructions for all systems
+=========================================
+
+Requirements:
+-------------
+
+- Python v3.6 (or higher)
+  http://www.python.org/
+
+- ODE 0.7
+  http://ode.org/
+
+- Cython 0.26.1
+
+Installation:
+-------------
+
+The package uses the Python distutils, so you can build it by calling
+
+  python setup.py build
+
+and install it by calling
+
+  python setup.py install
+
+which installs the package on your system.
+See the "Installing Python Modules" manual inside your Python documentation
+or at http://docs.python.org/inst/inst.html if you want to customize the
+build process or the target location.
+
+
+Note: It is assumed that the ODE library is already compiled and installed
+somewhere on your system. The setup script will try to find the ODE
+installation on your system by trying several common locations. However, if the
+installation can not be found, you will have to modify the setup.py script and
+add the appropriate paths.
+
