@@ -1,5 +1,7 @@
-PyODE
+Py3ODE
 =====
+
+Py3ODE is a port of PyODE for Python 3.
 
 PyODE is a set of open-source Python bindings for The Open Dynamics Engine, an
 open-source physics engine. PyODE also includes an XODE parser.
