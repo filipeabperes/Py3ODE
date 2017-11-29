@@ -74,7 +74,7 @@ def error(msg, errorcode=1):
 
 # Generate the C source file (if necessary)
 def generate(name, trimesh_support):
-   """Run Pyrex to generate the extension module source code.
+   """Run Cython to generate the extension module source code.
    """
 
    # Generate the trimesh_switch file
@@ -88,29 +88,29 @@ def generate(name, trimesh_support):
    f.close()
 
    cmd = "cython -o %s -I. -Isrc src/ode.pyx" % name
-   pyrex_out = name
+   cython_out = name
 
-   # Check if the pyrex output is still up to date or if it has to be generated
+   # Check if the cython output is still up to date or if it has to be generated
    # (ode.c will be updated if any of the *.pyx files in the directory "src"
    # is newer than ode.c)
-   if os.access(pyrex_out, os.F_OK):
-       ctime = os.stat(pyrex_out)[ST_MTIME]
+   if os.access(cython_out, os.F_OK):
+       ctime = os.stat(cython_out)[ST_MTIME]
        for pyx in glob.glob("src/*.pyx"):
            pytime = os.stat(pyx)[ST_MTIME]
            if pytime>ctime:
-               info("Updating %s"%pyrex_out)
+               info("Updating %s"%cython_out)
                print(cmd)
                err = os.system(cmd)
                break
        else:
-           info("%s is up to date"%pyrex_out)
+           info("%s is up to date"%cython_out)
            err = 0
    else:
-       info("Creating %s"%pyrex_out)
+       info("Creating %s"%cython_out)
        print(cmd)
        err = os.system(cmd)
 
-   # Check if calling pyrex produced an error
+   # Check if calling cython produced an error
    if err!=0:
        error("An error occured while generating the C source file.", err)
 
@@ -132,7 +132,7 @@ elif num>1:
    warning("ode.h was found more than once. Make sure the header and lib matches.")
 
 # Generate all possible source code versions so that they can be
-# packaged with the source archive and a user doesn't require Pyrex
+# packaged with the source archive and a user doesn't require Cython
 generate('ode_trimesh.c', True)
 generate('ode_notrimesh.c', False)
 
@@ -144,13 +144,13 @@ else:
    install = 'ode_notrimesh.c'
 
 # Compile the module
-setup(name = "PyODE",
+setup(name = "Py3ODE",
      version = "1.2.0",
-     description = "Python wrapper for the Open Dynamics Engine",
+     description = "Port of PyODE for Python 3",
      author = "see file AUTHORS",
-     author_email = "timothy@stranex.com",
+     author_email = "filipeabperes@gmail.com",
      license = "BSD or LGPL",
-     url = "http://pyode.sourceforge.net/",
+     url = "https://github.com/belbs/Py3ODE",
      packages = ["xode"],
      ext_modules = [Extension("ode", [install]
                     ,libraries=LIBS
