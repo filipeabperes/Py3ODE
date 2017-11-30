@@ -1,6 +1,15 @@
-Py3ODE
+Py3ODE 
 ======
 
+|pypi| |license|
+
+.. |pypi| image:: https://img.shields.io/pypi/v/Py3ODE.svg
+    :target: https://pypi.python.org/pypi/Py3ODE/
+    
+.. |license| image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
+    :target: https://opensource.org/licenses/Apache-2.0
+
+ 
 Py3ODE is a port of PyODE for Python 3.
 
 PyODE is a set of open-source Python bindings for The Open Dynamics Engine, an
