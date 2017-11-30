@@ -19,10 +19,10 @@ LIB_DIRS = []
 # Libraries to link with
 LIBS = []
 # Additional compiler arguments
-CC_ARGS = []
+CC_ARGS = ["-fPIC"]
 CC_ARGS.extend(system("ode-config --cflags").split())
 # Additional linker arguments
-LINK_ARGS = []
+LINK_ARGS = ["-fPIC"]
 LINK_ARGS.extend(system("ode-config --libs").split())
 
 # If your version of ODE was compiled with OPCODE (trimesh support) enabled,

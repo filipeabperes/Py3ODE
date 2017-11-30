@@ -1,13 +1,16 @@
 Py3ODE 
 ======
 
-|pypi| |license|
+|travis| |pypi| |license|
+
+.. |travis| image:: https://travis-ci.org/belbs/Py3ODE.svg
+    :target: https://travis-ci.org/belbs/Py3ODE
 
 .. |pypi| image:: https://img.shields.io/pypi/v/Py3ODE.svg
     :target: https://pypi.python.org/pypi/Py3ODE/
     
-.. |license| image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
-    :target: https://opensource.org/licenses/Apache-2.0
+.. |license| image:: https://img.shields.io/badge/License-LGPL%20v2.1-blue.svg
+    :target: https://www.gnu.org/licenses/lgpl-2.1
 
  
 Py3ODE is a port of PyODE for Python 3.
