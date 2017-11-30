@@ -7,6 +7,7 @@ import distutils.sysconfig
 import shutil, os, os.path, sys, glob
 from stat import *
 
+
 def system(cmd):
    f = os.popen(cmd)
    return f.read()
@@ -145,13 +146,14 @@ else:
 
 # Compile the module
 setup(name = "Py3ODE",
-     version = "1.2.0",
+     version = "1.2.0.dev0",
      description = "Port of PyODE for Python 3",
      author = "see file AUTHORS",
      author_email = "filipeabperes@gmail.com",
      license = "BSD or LGPL",
      url = "https://github.com/belbs/Py3ODE",
      packages = ["xode"],
+     python_requires='>=3',
      ext_modules = [Extension("ode", [install]
                     ,libraries=LIBS
                     ,include_dirs=INC_DIRS
