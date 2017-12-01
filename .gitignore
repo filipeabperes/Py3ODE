@@ -4,6 +4,7 @@ ode_trimesh.c
 _trimesh_switch.pyx
 MANIFEST
 dist
+ode_build
 .cache
 *.pyc
 *.egg-info

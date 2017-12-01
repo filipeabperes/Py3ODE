@@ -4,7 +4,7 @@
 
 from distutils.core import setup, Extension
 import distutils.sysconfig
-import shutil, os, os.path, sys, glob
+import shutil, os, os.path, sys, glob, subprocess
 from stat import *
 
 
@@ -19,10 +19,10 @@ LIB_DIRS = []
 # Libraries to link with
 LIBS = []
 # Additional compiler arguments
-CC_ARGS = ["-fPIC"]
+CC_ARGS = []
 CC_ARGS.extend(system("ode-config --cflags").split())
 # Additional linker arguments
-LINK_ARGS = ["-fPIC"]
+LINK_ARGS = []
 LINK_ARGS.extend(system("ode-config --libs").split())
 
 # If your version of ODE was compiled with OPCODE (trimesh support) enabled,
@@ -115,6 +115,11 @@ def generate(name, trimesh_support):
    if err!=0:
        error("An error occured while generating the C source file.", err)
 
+def install_ode():
+    """Download and install ODE.
+    """
+    subprocess.check_call('./install_ode.sh')
+
 ######################################################################
 
 # Check if ode.h can be found
@@ -128,7 +133,18 @@ for path in INC_DIRS:
        num += 1
 
 if num==0:
-   warning("<ode/ode.h> not found. You may have to adjust INC_DIRS.")
+   warning("<ode/ode.h> not found. If ODE is already installed, you may have to adjust INC_DIRS. \
+            If ODE is not installed, you can try to install it now.")
+   while True:
+      choice = input('Do you wish to download and install ODE? [Y/n] ').lower()
+      valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
+      if choice == '' or (choice in valid and valid[choice]):
+         install_ode()
+         break
+      elif choice not in valid:
+         print("Please enter 'y' or 'n'.")
+      else:
+         break
 elif num>1:
    warning("ode.h was found more than once. Make sure the header and lib matches.")
 
@@ -146,7 +162,7 @@ else:
 
 # Compile the module
 setup(name = "Py3ODE",
-     version = "1.2.0.dev2",
+     version = "1.2.0.dev3",
      description = "Port of PyODE for Python 3",
      author = "see file AUTHORS",
      author_email = "filipeabperes@gmail.com",
@@ -154,6 +170,7 @@ setup(name = "Py3ODE",
      url = "https://github.com/belbs/Py3ODE",
      packages = ["xode"],
      python_requires='>=3',
+     install_requires=['cython'],
      ext_modules = [Extension("ode", [install]
                     ,libraries=LIBS
                     ,include_dirs=INC_DIRS
