@@ -133,8 +133,9 @@ for path in INC_DIRS:
        num += 1
 
 if num==0:
-   warning("<ode/ode.h> not found. You can install ODE by running the install_ode.sh script."
-           "If it's already installed you may have to adjust INC_DIRS")
+   warning("<ode/ode.h> not found. You need to install ODE."
+           " (You can run run the install_ode.sh script in the source.)"
+           " If it's already installed you may have to adjust INC_DIRS")
    exit(1)
 elif num>1:
    warning("ode.h was found more than once. Make sure the header and lib matches.")
@@ -153,7 +154,7 @@ else:
 
 # Compile the module
 setup(name = "Py3ODE",
-     version = "1.2.0.dev5",
+     version = "1.2.0.dev6",
      description = "Port of PyODE for Python 3",
      author = "see file AUTHORS",
      author_email = "filipeabperes@gmail.com",
