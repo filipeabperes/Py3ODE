@@ -6,6 +6,7 @@ include LICENSE-BSD
 include ChangeLog
 include ode_trimesh.c
 include ode_notrimesh.c
+include install_ode.sh
 recursive-include src *.pyx
 recursive-include examples *.py
 recursive-include tests *.py

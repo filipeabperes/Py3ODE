@@ -12,6 +12,11 @@ Requirements:
 
 - Cython 0.26.1
 
+These are (supposedly) installed automatically. If some error occurs, try 
+installing them manually.
+
+ODE can be installed manually by running the install_ode.sh script.
+
 Installation:
 -------------
 
