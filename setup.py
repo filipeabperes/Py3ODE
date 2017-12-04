@@ -135,7 +135,7 @@ for path in INC_DIRS:
 if num==0:
    warning("<ode/ode.h> not found. You can install ODE by running the install_ode.sh script."
            "If it's already installed you may have to adjust INC_DIRS")
-   exit()
+   exit(1)
 elif num>1:
    warning("ode.h was found more than once. Make sure the header and lib matches.")
 
