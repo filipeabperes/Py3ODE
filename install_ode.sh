@@ -15,6 +15,6 @@ rm $ODE_TAR
 cd $ODE_DIR
 ./configure CFLAGS="$CFLAGS -fPIC" CXXFLAGS="$CXXFLAGS -fPIC"
 make
-make install
+sudo make install
 cd ../..
 rm -rf $BUILD_DIR
