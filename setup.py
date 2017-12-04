@@ -4,7 +4,7 @@
 
 from distutils.core import setup, Extension
 import distutils.sysconfig
-import shutil, psutil, os, os.path, sys, glob, subprocess
+import shutil, os, os.path, sys, glob, subprocess
 from stat import *
 
 
@@ -135,16 +135,6 @@ for path in INC_DIRS:
 if num==0:
    warning("<ode/ode.h> not found. If ODE is already installed, you may have to adjust INC_DIRS. \
             If ODE is not installed, you can try to install it now.")
-   # if not running from pip install, ask the user (pip hides terminal output)
-   while psutil.Process(os.getppid()).name() != "pip":
-      choice = input('Do you wish to download and install ODE? [Y/n] ').lower()
-      valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
-      if choice == '' or (choice in valid and valid[choice]):
-         break
-      elif choice not in valid:
-         print("Please enter 'y' or 'n'.")
-      else:
-         exit()
    install_ode()
 elif num>1:
    warning("ode.h was found more than once. Make sure the header and lib matches.")
