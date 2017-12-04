@@ -133,8 +133,7 @@ for path in INC_DIRS:
        num += 1
 
 if num==0:
-   warning("<ode/ode.h> not found. If ODE is already installed, you may have to adjust INC_DIRS. \
-            If ODE is not installed, you can try to install it now.")
+   warning("<ode/ode.h> not found. Trying to install it now.")
    install_ode()
 elif num>1:
    warning("ode.h was found more than once. Make sure the header and lib matches.")
