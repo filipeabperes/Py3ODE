@@ -3,16 +3,10 @@ python:
   - "3.5"
   - "3.6"
 install:
-  # # cython
-  # - pip install cython
-  # # ODE
-  # - wget https://downloads.sourceforge.net/project/opende/ODE/0.13/ode-0.13.tar.bz2
-  # - tar -xvf ode-0.13.tar.bz2
-  # - cd ode-0.13
-  # - ./configure CFLAGS="$CFLAGS -fPIC" CXXFLAGS="$CXXFLAGS -fPIC"
-  # - make
-  # - sudo make install
-  # - cd ..
+  # cython
+  - pip install cython
+  # ODE
+  - ./install_ode.sh
   # py3ode
   - pip install .
 script: pytest
