@@ -4,7 +4,7 @@
 
 from distutils.core import setup, Extension
 import distutils.sysconfig
-import shutil, os, os.path, sys, glob, subprocess
+import shutil, os, os.path, sys, glob, subprocess, pip
 from stat import *
 
 
@@ -12,6 +12,8 @@ def system(cmd):
    f = os.popen(cmd)
    return f.read()
 
+# Directory for pip package
+PIP_DIR = os.path.join(os.path.split(os.path.split(pip.__file__)[0])[0], 'xode', 'ode')
 # Include directories
 INC_DIRS = []
 # Library directories
@@ -47,7 +49,7 @@ if sys.platform=="win32":
 ######################################################################
 else:
 
-   for base in ["/usr", "/usr/local", "/opt/local"]:
+   for base in ["/usr", "/usr/local", "/opt/local", os.path.expanduser("~/ode"), PIP_DIR]:
       INC_DIRS += [os.path.join(base, "include")]
       LIB_DIRS += [os.path.join(base, "lib")]
 
@@ -115,10 +117,11 @@ def generate(name, trimesh_support):
    if err!=0:
        error("An error occured while generating the C source file.", err)
 
-def install_ode():
+def install_ode(install_dir):
     """Download and install ODE.
     """
-    subprocess.check_call('./install_ode.sh')
+    os.makedirs(install_dir, exist_ok=True)
+    subprocess.check_call(['./install_ode.sh', install_dir])
 
 ######################################################################
 
@@ -133,10 +136,9 @@ for path in INC_DIRS:
        num += 1
 
 if num==0:
-   warning("<ode/ode.h> not found. You need to install ODE."
-           " (You can run run the install_ode.sh script in the source.)"
-           " If it's already installed you may have to adjust INC_DIRS")
-   exit(1)
+   warning("<ode/ode.h> not found. Downloading and installing it now to {}".format(PIP_DIR) +
+           "\nIf it's already installed you may have to adjust INC_DIRS in setup.py.")
+   install_ode(PIP_DIR)
 elif num>1:
    warning("ode.h was found more than once. Make sure the header and lib matches.")
 
@@ -154,7 +156,7 @@ else:
 
 # Compile the module
 setup(name = "Py3ODE",
-     version = "1.2.0.dev6",
+     version = "1.2.0.dev8",
      description = "Port of PyODE for Python 3",
      author = "see file AUTHORS",
      author_email = "filipeabperes@gmail.com",

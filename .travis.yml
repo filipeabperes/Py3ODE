@@ -2,14 +2,13 @@ language: python
 python:
   - "3.5"
   - "3.6"
-sudo: required
 install:
   # cython
-  - pip install cython
+  # - pip install cython -vvv
   # ODE
-  - ./install_ode.sh
+  # - ./install_ode.sh
   # py3ode
-  - pip install .
+  - pip install . -vvv
 script: pytest
 deploy:
   provider: pypi
