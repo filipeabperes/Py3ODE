@@ -117,10 +117,11 @@ def generate(name, trimesh_support):
    if err!=0:
        error("An error occured while generating the C source file.", err)
 
-def install_ode(install_dir):
+def install_ode(install_dir='${HOME}/ode'):
     """Download and install ODE.
     """
-    os.makedirs(install_dir, exist_ok=True)
+    if install_dir:
+        os.makedirs(install_dir, exist_ok=True)
     subprocess.check_call(['./install_ode.sh', install_dir])
 
 ######################################################################
@@ -136,9 +137,9 @@ for path in INC_DIRS:
        num += 1
 
 if num==0:
-   warning("<ode/ode.h> not found. Downloading and installing it now to {}".format(PIP_DIR) +
+   warning("<ode/ode.h> not found. Downloading and installing it now to your home directory."
            "\nIf it's already installed you may have to adjust INC_DIRS in setup.py.")
-   install_ode(PIP_DIR)
+   install_ode()
 elif num>1:
    warning("ode.h was found more than once. Make sure the header and lib matches.")
 
@@ -156,7 +157,7 @@ else:
 
 # Compile the module
 setup(name = "Py3ODE",
-     version = "1.2.0.dev8",
+     version = "1.2.0.dev9",
      description = "Port of PyODE for Python 3",
      author = "see file AUTHORS",
      author_email = "filipeabperes@gmail.com",
