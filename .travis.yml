@@ -8,7 +8,7 @@ install:
   # ODE
   # - ./install_ode.sh
   # py3ode
-  - pip install . -vvv
+  - pip install .
 script: pytest
 deploy:
   provider: pypi
