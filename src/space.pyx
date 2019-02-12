@@ -167,6 +167,35 @@ cdef class SpaceBase(GeomObject):
 
         return _geom_c2py_lut[<long>gid]
 
+    def setCleanup(self, int mode):
+      """setCleanup(int mode)
+
+      Set the clean-up mode of the space.
+
+      If the clean-up mode is 1, then the contained geoms will be destroyed
+      when the space is destroyed.
+      If the clean-up mode is 0 this does not happen.
+
+      The default clean-up mode for new spaces is 1.
+
+      @param mode: The cleanup mode, 0 or 1
+      @type mode: int
+      """
+
+      # Check mode
+      if not (mode == 0 or mode == 1):
+          raise RuntimeError, "Cleanup mode needs to be either 0 or 1."
+
+      dSpaceSetCleanup(self.sid, mode)
+
+    def getCleanup(self):
+        """getCleanup() -> mode
+
+        Get the clean-up mode of the space.
+        """
+
+        dSpaceGetCleanup(self.sid)
+
     def collide(self, arg, callback):
         """collide(arg, callback)
 
