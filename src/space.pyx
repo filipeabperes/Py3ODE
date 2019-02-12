@@ -27,11 +27,11 @@ class _SpaceIterator:
     def __init__(self, space):
         self.space = space
         self.idx = 0
-        
+
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         if self.idx>=self.space.getNumGeoms():
             raise StopIteration
         else:
