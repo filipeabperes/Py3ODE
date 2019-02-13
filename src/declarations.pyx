@@ -343,19 +343,12 @@ cdef extern from "ode/ode.h":
     void dMassAdd (dMass *a, dMass *b)
 
     # Space
-#    dSpaceID dSimpleSpaceCreate(int space)
-#    dSpaceID dHashSpaceCreate(int space)
     dSpaceID dSimpleSpaceCreate(dSpaceID space)
     dSpaceID dHashSpaceCreate(dSpaceID space)
     dSpaceID dQuadTreeSpaceCreate (dSpaceID space, dVector3 Center,
                                    dVector3 Extents, int Depth)
 
     void dSpaceDestroy (dSpaceID)
-    void dSpaceAdd (dSpaceID, dGeomID)
-    void dSpaceRemove (dSpaceID, dGeomID)
-    int dSpaceQuery (dSpaceID, dGeomID)
-    void dSpaceCollide (dSpaceID space, void *data, dNearCallback *callback)
-    void dSpaceCollide2 (dGeomID o1, dGeomID o2, void *data, dNearCallback *callback)
 
     void dHashSpaceSetLevels (dSpaceID space, int minlevel, int maxlevel)
     void dHashSpaceGetLevels (dSpaceID space, int *minlevel, int *maxlevel)
@@ -363,11 +356,25 @@ cdef extern from "ode/ode.h":
     void dSpaceSetCleanup (dSpaceID space, int mode)
     int dSpaceGetCleanup (dSpaceID space)
 
+    void dSpaceSetSublevel (dSpaceID space, int sublevel)
+    int dSpaceGetSublevel (dSpaceID space)
+
+    void dSpaceAdd (dSpaceID, dGeomID)
+
+    void dSpaceRemove (dSpaceID, dGeomID)
+
+    int dSpaceQuery (dSpaceID, dGeomID)
+
     int dSpaceGetNumGeoms (dSpaceID)
+
     dGeomID dSpaceGetGeom (dSpaceID, int i)
 
-    void dSpaceSetSublevel (dSpaceID space, int sublevel);
-    int dSpaceGetSublevel (dSpaceID space);
+    # Collision Detection
+    int dCollide (dGeomID o1, dGeomID o2, int flags, dContactGeom *contact, int skip)
+
+    void dSpaceCollide (dSpaceID space, void *data, dNearCallback *callback)
+
+    void dSpaceCollide2 (dGeomID o1, dGeomID o2, void *data, dNearCallback *callback)
 
     # Geom
     dGeomID dCreateSphere (dSpaceID space, dReal radius)
