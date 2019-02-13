@@ -16,7 +16,7 @@
 # This library is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the files
-# LICENSE and LICENSE-BSD for more details. 
+# LICENSE and LICENSE-BSD for more details.
 ######################################################################
 
 # Each geom object has to insert itself into the global dictionary
@@ -26,7 +26,7 @@
 #
 # Additionally, each geom object must have a method _id() that returns
 # the ODE geom id. This is used during collision detection.
-# 
+#
 # ##########################
 # # Obsolete:
 # #
@@ -39,12 +39,12 @@
 cdef class GeomObject:
     """This is the abstract base class for all geom objects.
     """
-    
+
     # The id of the geom object as returned by dCreateXxxx()
     cdef dGeomID gid
     # The space in which the geom was placed (or None). This reference
     # is kept so that the space won't be destroyed while there are still
-    # geoms around that might use it. 
+    # geoms around that might use it.
     cdef object space
     # The body that the geom was attached to (or None).
     cdef object body
@@ -89,7 +89,7 @@ cdef class GeomObject:
         Return the internal id of the geom (dGeomID) as returned by
         the dCreateXyz() functions.
 
-        This method has to be overwritten in derived methods.        
+        This method has to be overwritten in derived methods.
         """
         raise NotImplementedError, "Bug: The _id() method is not implemented."
 
@@ -113,7 +113,7 @@ cdef class GeomObject:
 
         if not self.placeable():
             raise ValueError, "Non-placeable geoms cannot have a body associated to them."
-        
+
         if body==None:
             dGeomSetBody(self.gid, NULL)
         else:
@@ -127,7 +127,7 @@ cdef class GeomObject:
         """
         if not self.placeable():
             return environment
-        
+
         return self.body
 
     def setPosition(self, pos):
@@ -235,7 +235,7 @@ cdef class GeomObject:
         The return value is a 6-tuple (minx, maxx, miny, maxy, minz, maxz).
         """
         cdef dReal aabb[6]
-        
+
         dGeomGetAABB(self.gid, aabb)
         return (aabb[0], aabb[1], aabb[2], aabb[3], aabb[4], aabb[5])
 
@@ -249,7 +249,7 @@ cdef class GeomObject:
         """getSpace() -> Space
 
         Return the space that the given geometry is contained in,
-        or return None if it is not contained in any space."""        
+        or return None if it is not contained in any space."""
         return self.space
 
     def setCollideBits(self, bits):
@@ -261,7 +261,7 @@ cdef class GeomObject:
         @type bits: int/long
         """
         dGeomSetCollideBits(self.gid, long(bits))
-        
+
     def setCategoryBits(self, bits):
         """setCategoryBits(bits)
 
@@ -285,7 +285,97 @@ cdef class GeomObject:
         Return the "category" bitfields for this geom.
         """
         return dGeomGetCategoryBits(self.gid)
-    
+
+    def setOffsetPosition(self, pos):
+        """setOffsetPosition(pos)
+
+        Set the offset position of a geom.
+
+        The geom must be attached to a body.
+
+        If the geom did not have an offset, it is automatically created.
+
+        This sets up an additional (local) transformation for the geom,
+        since geoms attached to a body share their global position and rotation.
+
+        To disable the offset call dGeomClearOffset.
+
+        @param pos: Position
+        @type pos: 3-sequence (tuple) of floats
+        """
+        dGeomSetOffsetPosition(self.gid, pos[0], pos[1], pos[2]);
+
+    def setOffsetRotation(self, R):
+        """setOffsetRotation(R)
+
+        Set the offset rotation of a geom.
+
+        The geom must be attached to a body.
+
+        If the geom did not have an offset, it is automatically created.
+
+        This sets up an additional (local) transformation for the geom,
+        since geoms attached to a body share their global position and rotation.
+
+        To disable the offset call dGeomClearOffset.
+
+        @param R: Rotation matrix
+        @type R: 9-sequence (tuple) of floats
+        """
+        cdef dMatrix3 m
+        m[0] = R[0]
+        m[1] = R[1]
+        m[2] = R[2]
+        m[3] = 0
+        m[4] = R[3]
+        m[5] = R[4]
+        m[6] = R[5]
+        m[7] = 0
+        m[8] = R[6]
+        m[9] = R[7]
+        m[10] = R[8]
+        m[11] = 0
+        dGeomSetOffsetRotation(self.gid, m)
+
+    def setOffsetQuaternion(self, q):
+        """setOffsetQuaternion(q)
+
+        Set the offset quaternion of a geom.
+
+        The geom must be attached to a body.
+
+        If the geom did not have an offset, it is automatically created.
+
+        This sets up an additional (local) transformation for the geom,
+        since geoms attached to a body share their global position and rotation.
+
+        To disable the offset call dGeomClearOffset.
+
+        @param q: Quaternion (w,x,y,z)
+        @type q: 4-sequence of floats
+        """
+        cdef dQuaternion cq
+        cq[0] = q[0]
+        cq[1] = q[1]
+        cq[2] = q[2]
+        cq[3] = q[3]
+        dGeomSetOffsetQuaternion(self.gid, cq)
+
+    def clearOffset(self):
+        """clearOffset()
+
+        Disable the geom's offset.
+
+        The geom will be repositioned / oriented at the body's
+        position / orientation.
+
+        If the geom has no offset, this function does nothing.
+
+        Note, that this will eliminate the offset and is more efficient than
+        setting the offset to the identity transformation.
+        """
+        dGeomClearOffset(self.gid)
+
     def enable(self):
         """enable()
 
@@ -303,6 +393,3 @@ cdef class GeomObject:
 
         Return True if the geom is enabled."""
         return dGeomIsEnabled(self.gid)
-
-
-
