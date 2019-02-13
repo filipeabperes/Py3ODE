@@ -50,7 +50,7 @@ cdef class GeomObject:
     cdef object body
 
     # A dictionary with user defined attributes
-    cdef object attribs
+    cdef public object attribs
 
     cdef object __weakref__
 
