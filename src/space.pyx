@@ -178,7 +178,40 @@ cdef class SpaceBase(GeomObject):
 
         Get the clean-up mode of the space.
         """
-        dSpaceGetCleanup(self.sid)
+        return dSpaceGetCleanup(self.sid)
+
+    def setSublevel(self, int sublevel):
+        """setSublevel(int sublevel)
+
+        Set the sublevel value for the space.
+        Sublevel affects how the space is handled in dSpaceCollide2 when it
+        is collided with another space.
+
+        If sublevels of both spaces match, the function iterates geometries of
+        both spaces and collides them with each other.
+
+        If sublevel of one space is greater than the sublevel of another one,
+        only the geometries of the space with greater sublevel are iterated,
+        another space is passed into collision callback as a geometry itself.
+
+        By default all the spaces are assigned zero sublevel.
+
+        NOTE:
+        The space sublevel IS NOT automatically updated when one space is
+        inserted into another or removed from one.
+        It is a client's responsibility to update sublevel value if necessary.
+
+        @param sublevel: The desired sublevel.
+        @type sublevel: int
+        """
+        dSpaceSetSublevel(self.sid, sublevel)
+
+    def getSublevel(self):
+        """getSublevel() -> int
+
+        Get the sublevel value for the space.
+        """
+        return dSpaceGetSublevel(self.sid)
 
     def collide(self, arg, callback):
         """collide(arg, callback)
@@ -327,7 +360,7 @@ cdef class QuadTreeSpace(SpaceBase):
     cull collision checks.
     It's exceptionally quick for large amounts of objects in landscape-shaped
     worlds. The amount of
-    memory used is 4**depth * 32 bytes.
+    memory used is 4 ** depth * 32 bytes.
 
     Currently getGeom() is not implemented for the quadtree space.
     """

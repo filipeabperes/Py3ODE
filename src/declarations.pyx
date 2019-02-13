@@ -366,6 +366,9 @@ cdef extern from "ode/ode.h":
     int dSpaceGetNumGeoms (dSpaceID)
     dGeomID dSpaceGetGeom (dSpaceID, int i)
 
+    void dSpaceSetSublevel (dSpaceID space, int sublevel);
+    int dSpaceGetSublevel (dSpaceID space);
+
     # Geom
     dGeomID dCreateSphere (dSpaceID space, dReal radius)
     dGeomID dCreateBox (dSpaceID space, dReal lx, dReal ly, dReal lz)
