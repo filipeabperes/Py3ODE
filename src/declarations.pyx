@@ -16,7 +16,7 @@
 # This library is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the files
-# LICENSE and LICENSE-BSD for more details. 
+# LICENSE and LICENSE-BSD for more details.
 ######################################################################
 
 cdef extern from "stdlib.h":
@@ -29,11 +29,11 @@ cdef extern from "stdio.h":
 
 # Include the basic floating point type -> dReal  (either float or double)
 #include "_precision.pyx"
-    
+
 cdef extern from "ode/ode.h":
 
     ctypedef double dReal
-    
+
     # Dummy structs
     cdef struct dxWorld:
         int _dummy
@@ -76,7 +76,7 @@ cdef extern from "ode/ode.h":
         dReal    mass
         dVector4 c
         dMatrix3 I
-        
+
     ctypedef struct dJointFeedback:
         dVector3 f1
         dVector3 t1
@@ -85,6 +85,12 @@ cdef extern from "ode/ode.h":
 
     ctypedef void dNearCallback(void* data, dGeomID o1, dGeomID o2)
     ctypedef dReal dHeightfieldGetHeight( void* p_user_data, int x, int z )
+
+    ctypedef void dGetAABBFn (dGeomID, dReal aabb[6])
+    ctypedef int dColliderFn (dGeomID o1, dGeomID o2, int flags, dContactGeom *contact, int skip)
+    ctypedef dColliderFn * dGetColliderFnFn (int num)
+    ctypedef void dGeomDtorFn (dGeomID o)
+    ctypedef int dAABBTestFn (dGeomID o1, dGeomID o2, dReal aabb[6])
 
     ctypedef struct dSurfaceParameters:
         int mode
@@ -109,6 +115,12 @@ cdef extern from "ode/ode.h":
         dContactGeom geom
         dVector3 fdir1
 
+    ctypedef struct dGeomClass:
+        int bytes
+        dGetColliderFnFn *collider
+        dGetAABBFn *aabb
+        dAABBTestFn *aabb_test
+        dGeomDtorFn *dtor
 
     # World
     dWorldID dWorldCreate()
@@ -268,7 +280,7 @@ cdef extern from "ode/ode.h":
     void dJointSetLMotorAxis (dJointID, int anum, int rel, dReal x, dReal y, dReal z)
     void dJointSetLMotorNumAxes (dJointID, int num)
     void dJointSetLMotorParam (dJointID, int parameter, dReal value)
-    
+
     void dJointGetBallAnchor (dJointID, dVector3 result)
     void dJointGetBallAnchor2 (dJointID, dVector3 result)
     void dJointGetHingeAnchor (dJointID, dVector3 result)
@@ -377,50 +389,28 @@ cdef extern from "ode/ode.h":
     void dSpaceCollide2 (dGeomID o1, dGeomID o2, void *data, dNearCallback *callback)
 
     # Geom
-    dGeomID dCreateSphere (dSpaceID space, dReal radius)
-    dGeomID dCreateBox (dSpaceID space, dReal lx, dReal ly, dReal lz)
-    dGeomID dCreatePlane (dSpaceID space, dReal a, dReal b, dReal c, dReal d)
-    dGeomID dCreateCapsule (dSpaceID space, dReal radius, dReal length)
-    dGeomID dCreateCylinder (dSpaceID space, dReal radius, dReal length)
-    dGeomID dCreateGeomGroup (dSpaceID space)
-
-    void dGeomSphereSetRadius (dGeomID sphere, dReal radius)
-    void dGeomBoxSetLengths (dGeomID box, dReal lx, dReal ly, dReal lz)
-    void dGeomPlaneSetParams (dGeomID plane, dReal a, dReal b, dReal c, dReal d)
-    void dGeomCapsuleSetParams (dGeomID ccylinder, dReal radius, dReal length)
-    void dGeomCylinderSetParams (dGeomID ccylinder, dReal radius, dReal length)
-
-    dReal dGeomSphereGetRadius (dGeomID sphere)
-    void  dGeomBoxGetLengths (dGeomID box, dVector3 result)
-    void  dGeomPlaneGetParams (dGeomID plane, dVector4 result)
-    void  dGeomCapsuleGetParams (dGeomID ccylinder, dReal *radius, dReal *length)
-    void  dGeomCylinderGetParams (dGeomID ccylinder, dReal *radius, dReal *length)
-
-    dReal dGeomSpherePointDepth (dGeomID sphere, dReal x, dReal y, dReal z)
-    dReal dGeomBoxPointDepth (dGeomID box, dReal x, dReal y, dReal z)
-    dReal dGeomPlanePointDepth (dGeomID plane, dReal x, dReal y, dReal z)
-    dReal dGeomCapsulePointDepth (dGeomID ccylinder, dReal x, dReal y, dReal z)
-
-    dGeomID dCreateRay (dSpaceID space, dReal length)
-    void dGeomRaySetLength (dGeomID ray, dReal length)
-    dReal dGeomRayGetLength (dGeomID ray)
-    void dGeomRaySet (dGeomID ray, dReal px, dReal py, dReal pz,
-          dReal dx, dReal dy, dReal dz)
-    void dGeomRayGet (dGeomID ray, dVector3 start, dVector3 dir)
+    void dGeomDestroy (dGeomID)
 
     void dGeomSetData (dGeomID, void *)
     void *dGeomGetData (dGeomID)
+
     void dGeomSetBody (dGeomID, dBodyID)
     dBodyID dGeomGetBody (dGeomID)
+
     void dGeomSetPosition (dGeomID, dReal x, dReal y, dReal z)
     void dGeomSetRotation (dGeomID, dMatrix3 R)
     void dGeomSetQuaternion (dGeomID, dQuaternion)
+
     dReal * dGeomGetPosition (dGeomID)
     dReal * dGeomGetRotation (dGeomID)
     void dGeomGetQuaternion (dGeomID, dQuaternion result)
-    void dGeomDestroy (dGeomID)
+
+    # not present in the manual
+    void dGeomCopyPosition (dGeomID geom, dVector3 pos)
+    void dGeomCopyRotation(dGeomID geom, dMatrix3 R)
+
     void dGeomGetAABB (dGeomID, dReal aabb[6])
-    dReal *dGeomGetSpaceAABB (dGeomID)
+
     int dGeomIsSpace (dGeomID)
     dSpaceID dGeomGetSpace (dGeomID)
     int dGeomGetClass (dGeomID)
@@ -428,11 +418,149 @@ cdef extern from "ode/ode.h":
     void dGeomSetCategoryBits(dGeomID, unsigned long bits)
     void dGeomSetCollideBits(dGeomID, unsigned long bits)
     unsigned long dGeomGetCategoryBits(dGeomID)
-    unsigned long dGeomGetCollideBits(dGeomID)     
+    unsigned long dGeomGetCollideBits(dGeomID)
 
     void dGeomEnable (dGeomID)
     void dGeomDisable (dGeomID)
     int dGeomIsEnabled (dGeomID)
+
+    # not present in the manual
+    int dGeomLowLevelControl (dGeomID geom, int controlClass, int controlCode,
+        void *dataValue, int *dataSize)
+
+    # not present in the manual
+    void dGeomGetRelPointPos (dGeomID geom, dReal px, dReal py, dReal pz,
+        dVector3 result)
+    void dGeomGetPosRelPoint (dGeomID geom, dReal px, dReal py, dReal pz,
+        dVector3 result)
+
+    # not present in the manual
+    void dGeomVectorToWorld (dGeomID geom, dReal px, dReal py, dReal pz,
+        dVector3 result)
+    void dGeomVectorFromWorld (dGeomID geom, dReal px, dReal py, dReal pz,
+        dVector3 result)
+
+    void dGeomSetOffsetPosition (dGeomID geom, dReal x, dReal y, dReal z)
+    void dGeomSetOffsetRotation (dGeomID geom, const dMatrix3 R)
+    void dGeomSetOffsetQuaternion (dGeomID geom, const dQuaternion Q)
+
+    void dGeomSetOffsetWorldPosition (dGeomID geom, dReal x, dReal y, dReal z)
+    void dGeomSetOffsetWorldRotation (dGeomID geom, const dMatrix3 R)
+    void dGeomSetOffsetWorldQuaternion (dGeomID geom, const dQuaternion)
+
+    void dGeomClearOffset(dGeomID geom)
+    # not present in the manual
+    int dGeomIsOffset(dGeomID geom)
+
+    const dReal * dGeomGetOffsetPosition (dGeomID geom)
+    const dReal * dGeomGetOffsetRotation (dGeomID geom)
+    void dGeomGetOffsetQuaternion (dGeomID geom, dQuaternion result)
+
+    # not present in the manual
+    void dGeomCopyOffsetPosition (dGeomID geom, dVector3 pos)
+    void dGeomCopyOffsetRotation (dGeomID geom, dMatrix3 R)
+
+        # Sphere
+    dGeomID dCreateSphere (dSpaceID space, dReal radius)
+    void dGeomSphereSetRadius (dGeomID sphere, dReal radius)
+    dReal dGeomSphereGetRadius (dGeomID sphere)
+    dReal dGeomSpherePointDepth (dGeomID sphere, dReal x, dReal y, dReal z)
+
+        # Convex
+    dGeomID dCreateConvex (dSpaceID space, const dReal *_planes,
+        unsigned int _planecount, const dReal *_points, unsigned int _pointcount,
+        const unsigned int *_polygons)
+    void dGeomSetConvex (dGeomID g, const dReal *_planes, unsigned int _count,
+        const dReal *_points, unsigned int _pointcount, const unsigned int *_polygons)
+
+        # Box
+    dGeomID dCreateBox (dSpaceID space, dReal lx, dReal ly, dReal lz)
+    void dGeomBoxSetLengths (dGeomID box, dReal lx, dReal ly, dReal lz)
+    void  dGeomBoxGetLengths (dGeomID box, dVector3 result)
+    dReal dGeomBoxPointDepth (dGeomID box, dReal x, dReal y, dReal z)
+
+        # Plane
+    dGeomID dCreatePlane (dSpaceID space, dReal a, dReal b, dReal c, dReal d)
+    void dGeomPlaneSetParams (dGeomID plane, dReal a, dReal b, dReal c, dReal d)
+    void  dGeomPlaneGetParams (dGeomID plane, dVector4 result)
+    dReal dGeomPlanePointDepth (dGeomID plane, dReal x, dReal y, dReal z)
+
+        # Capsule
+    dGeomID dCreateCapsule (dSpaceID space, dReal radius, dReal length)
+    void dGeomCapsuleSetParams (dGeomID ccylinder, dReal radius, dReal length)
+    void  dGeomCapsuleGetParams (dGeomID ccylinder, dReal *radius, dReal *length)
+    dReal dGeomCapsulePointDepth (dGeomID ccylinder, dReal x, dReal y, dReal z)
+
+        # Cylinder
+    dGeomID dCreateCylinder (dSpaceID space, dReal radius, dReal length)
+    void dGeomCylinderSetParams (dGeomID ccylinder, dReal radius, dReal length)
+    void  dGeomCylinderGetParams (dGeomID ccylinder, dReal *radius, dReal *length)
+
+        # Ray
+    dGeomID dCreateRay (dSpaceID space, dReal length)
+    void dGeomRaySetLength (dGeomID ray, dReal length)
+    dReal dGeomRayGetLength (dGeomID ray)
+    void dGeomRaySet (dGeomID ray, dReal px, dReal py, dReal pz, dReal dx,
+        dReal dy, dReal dz)
+    void dGeomRayGet (dGeomID ray, dVector3 start, dVector3 dir)
+    void dGeomRaySetFirstContact (dGeomID g, int firstContact)
+    int dGeomRayGetFirstContact (dGeomID g)
+    void dGeomRaySetBackfaceCull (dGeomID g, int backfaceCull)
+    int dGeomRayGetBackfaceCull (dGeomID g)
+    void dGeomRaySetClosestHit (dGeomID g, int closestHit)
+    int dGeomRayGetClosestHit (dGeomID g)
+
+        # Heightfield
+    dGeomID dCreateHeightfield (dSpaceID space, dHeightfieldDataID data,
+        int bPlaceable)
+    dHeightfieldDataID dGeomHeightfieldDataCreate()
+    void dGeomHeightfieldDataDestroy(dHeightfieldDataID g)
+    void dGeomHeightfieldDataBuildCallback(dHeightfieldDataID d, void* pUserData,
+        dHeightfieldGetHeight* pCallback, dReal width, dReal depth,
+        int widthSamples, int depthSamples, dReal scale, dReal offset,
+        dReal thickness, int bWrap)
+    void dGeomHeightfieldDataBuildByte( dHeightfieldDataID d,
+        const unsigned char* pHeightData, int bCopyHeightData, dReal width,
+        dReal depth, int widthSamples, int depthSamples, dReal scale,
+        dReal offset, dReal thickness,	int bWrap )
+    void dGeomHeightfieldDataBuildShort( dHeightfieldDataID d,
+        const short* pHeightData, int bCopyHeightData,
+        dReal width, dReal depth, int widthSamples, int depthSamples,
+        dReal scale, dReal offset, dReal thickness, int bWrap )
+    void dGeomHeightfieldDataBuildSingle( dHeightfieldDataID d,
+        const float* pHeightData, int bCopyHeightData,
+        dReal width, dReal depth, int widthSamples, int depthSamples,
+        dReal scale, dReal offset, dReal thickness, int bWrap )
+    void dGeomHeightfieldDataBuildDouble( dHeightfieldDataID d,
+        const double* pHeightData, int bCopyHeightData,
+        dReal width, dReal depth, int widthSamples, int depthSamples,
+        dReal scale, dReal offset, dReal thickness, int bWrap )
+    void dGeomHeightfieldDataSetBounds( dHeightfieldDataID d,
+        dReal minHeight, dReal maxHeight )
+    void dGeomHeightfieldSetHeightfieldData( dGeomID g, dHeightfieldDataID d )
+    dHeightfieldDataID dGeomHeightfieldGetHeightfieldData( dGeomID g )
+
+        # Utility
+    void dClosestLineSegmentPoints (const dVector3 a1, const dVector3 a2,
+        const dVector3 b1, const dVector3 b2, dVector3 cp1, dVector3 cp2)
+    int dBoxTouchesBox (const dVector3 _p1, const dMatrix3 R1,
+        const dVector3 side1, const dVector3 _p2,
+        const dMatrix3 R2, const dVector3 side2)
+    int dBoxBox (const dVector3 p1, const dMatrix3 R1,
+        const dVector3 side1, const dVector3 p2,
+        const dMatrix3 R2, const dVector3 side2,
+        dVector3 normal, dReal *depth, int *return_code,
+        int flags, dContactGeom *contact, int skip)
+    void dInfiniteAABB (dGeomID geom, dReal aabb[6])
+    int dCreateGeomClass (const dGeomClass *classptr)
+    void * dGeomGetClassData (dGeomID)
+    dGeomID dCreateGeom (int classnum)
+    void dSetColliderOverride (int i, int j, dColliderFn *fn)
+
+        # ????
+    dGeomID dCreateGeomGroup (dSpaceID space)
+
+    dReal *dGeomGetSpaceAABB (dGeomID)
 
     void dGeomGroupAdd (dGeomID group, dGeomID x)
     void dGeomGroupRemove (dGeomID group, dGeomID x)
@@ -447,7 +575,6 @@ cdef extern from "ode/ode.h":
     void dGeomTransformSetInfo (dGeomID g, int mode)
     int dGeomTransformGetInfo (dGeomID g)
 
-    int dCollide (dGeomID o1, dGeomID o2, int flags, dContactGeom *contact, int skip)
 
     # Trimesh
     dTriMeshDataID dGeomTriMeshDataCreate()
@@ -456,7 +583,7 @@ cdef extern from "ode/ode.h":
                                 int VertexStride, int VertexCount,
                                 void* Indices, int IndexCount,
                                 int TriStride, void* Normals)
-    
+
     void dGeomTriMeshDataBuildSimple(dTriMeshDataID g,
                                  dReal* Vertices, int VertexCount,
                                  int* Indices, int IndexCount)
@@ -464,10 +591,10 @@ cdef extern from "ode/ode.h":
     dGeomID dCreateTriMesh (dSpaceID space, dTriMeshDataID Data,
                             void* Callback,
                             void* ArrayCallback,
-                            void* RayCallback)   
+                            void* RayCallback)
 
     void dGeomTriMeshSetData (dGeomID g, dTriMeshDataID Data)
-    
+
     void dGeomTriMeshClearTCCache (dGeomID g)
 
     void dGeomTriMeshGetTriangle (dGeomID g, int Index, dVector3 *v0,
@@ -480,17 +607,3 @@ cdef extern from "ode/ode.h":
 
     void dGeomTriMeshEnableTC(dGeomID g, int geomClass, int enable)
     int dGeomTriMeshIsTCEnabled(dGeomID g, int geomClass)
-
-    # Heightfield
-    dHeightfieldDataID dGeomHeightfieldDataCreate()
-    void dGeomHeightfieldDataDestroy(dHeightfieldDataID g)
-    void dGeomHeightfieldDataBuildCallback(dHeightfieldDataID d,
-                                           void* pUserData,
-                                           dHeightfieldGetHeight* pCallback,
-                                           dReal width, dReal depth,
-                                           int widthSamples, int depthSamples,
-                                           dReal scale, dReal offset,
-                                           dReal thickness, int bWrap)
-    dGeomID dCreateHeightfield (dSpaceID space, dHeightfieldDataID data,
-                                 int bPlaceable)
-
