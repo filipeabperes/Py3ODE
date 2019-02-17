@@ -3,8 +3,8 @@ Py3ODE
 
 |travis| |pypi| |license|
 
-.. |travis| image:: https://travis-ci.org/belbs/Py3ODE.svg
-    :target: https://travis-ci.org/belbs/Py3ODE
+.. |travis| image:: https://travis-ci.org/filipeabperes/Py3ODE.svg
+    :target: https://travis-ci.org/filipeabperes/Py3ODE
 
 .. |pypi| image:: https://img.shields.io/pypi/v/Py3ODE.svg
     :target: https://pypi.python.org/pypi/Py3ODE/
