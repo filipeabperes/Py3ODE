@@ -16,10 +16,10 @@
 # This library is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the files
-# LICENSE and LICENSE-BSD for more details. 
+# LICENSE and LICENSE-BSD for more details.
 ######################################################################
 
-# Body
+
 cdef class Body:
     """The rigid body class encapsulating the ODE body.
 
@@ -38,13 +38,17 @@ cdef class Body:
     # A reference to the world so that the world won't be destroyed while
     # there are still joints using it.
     cdef object world
-    
+
     # A dictionary with user attributes
     # (set via __getattr__ and __setattr__)
     cdef object userattribs
 
+    cdef object __weakref__
+
     def __cinit__(self, World world not None):
         self.bid = dBodyCreate(world.wid)
+
+        _geom_c2py_lut[<long>self.bid] = self
 
     def __init__(self, World world not None):
         """Constructor.
@@ -54,6 +58,7 @@ cdef class Body:
         """
         self.world = world
         self.userattribs = {}
+        self.callback = None
 
     def __dealloc__(self):
         if self.bid!=NULL:
@@ -64,7 +69,7 @@ cdef class Body:
             return self.userattribs[name]
         except:
             raise AttributeError, "Body object has no attribute '%s'"%name
-            
+
     def __setattr__(self, name, value):
         self.userattribs[name] = value
 
@@ -205,7 +210,7 @@ cdef class Body:
         # The "const" in the original return value is cast away
         p = <dReal*>dBodyGetAngularVel(self.bid)
         return (p[0],p[1],p[2])
-    
+
     # setMass
     def setMass(self, Mass mass):
         """setMass(mass)
@@ -389,7 +394,7 @@ cdef class Body:
         @type p: 3-sequence of floats
         """
 
-        cdef dVector3 res 
+        cdef dVector3 res
         dBodyGetRelPointPos(self.bid, p[0], p[1], p[2], res)
         return (res[0], res[1], res[2])
 
@@ -404,7 +409,7 @@ cdef class Body:
         @param p: Body point (local coordinates)
         @type p: 3-sequence of floats
         """
-        cdef dVector3 res 
+        cdef dVector3 res
         dBodyGetRelPointVel(self.bid, p[0], p[1], p[2], res)
         return (res[0], res[1], res[2])
 
@@ -419,7 +424,7 @@ cdef class Body:
         @param p: Body point (global coordinates)
         @type p: 3-sequence of floats
         """
-        cdef dVector3 res 
+        cdef dVector3 res
         dBodyGetPointVel(self.bid, p[0], p[1], p[2], res)
         return (res[0], res[1], res[2])
 
@@ -434,7 +439,7 @@ cdef class Body:
         @param p: Body point (global coordinates)
         @type p: 3-sequence of floats
         """
-        cdef dVector3 res 
+        cdef dVector3 res
         dBodyGetPosRelPoint(self.bid, p[0], p[1], p[2], res)
         return (res[0], res[1], res[2])
 
@@ -464,9 +469,9 @@ cdef class Body:
         """
         cdef dVector3 res
         dBodyVectorFromWorld(self.bid, v[0], v[1], v[2], res)
-        return (res[0], res[1], res[2])        
-        
-        
+        return (res[0], res[1], res[2])
+
+
     # Enable
     def enable(self):
         """enable()
@@ -474,7 +479,7 @@ cdef class Body:
         Manually enable a body.
         """
         dBodyEnable(self.bid)
-        
+
     # Disable
     def disable(self):
         """disable()
@@ -484,7 +489,7 @@ cdef class Body:
         at the next simulation step.
         """
         dBodyDisable(self.bid)
-        
+
     # isEnabled
     def isEnabled(self):
         """isEnabled() -> bool
@@ -492,20 +497,20 @@ cdef class Body:
         Check if a body is currently enabled.
         """
         return dBodyIsEnabled(self.bid)
-        
+
     # setFiniteRotationMode
     def setFiniteRotationMode(self, mode):
         """setFiniteRotationMode(mode)
 
         This function controls the way a body's orientation is updated at
         each time step. The mode argument can be:
-        
+
          - 0: An "infinitesimal" orientation update is used. This is
            fast to compute, but it can occasionally cause inaccuracies
            for bodies that are rotating at high speed, especially when
            those bodies are joined to other bodies. This is the default
            for every new body that is created.
-        
+
          - 1: A "finite" orientation update is used. This is more
            costly to compute, but will be more accurate for high speed
            rotations. Note however that high speed rotations can result
@@ -516,7 +521,7 @@ cdef class Body:
         @type mode: int
         """
         dBodySetFiniteRotationMode(self.bid, mode)
-        
+
     # getFiniteRotationMode
     def getFiniteRotationMode(self):
         """getFiniteRotationMode() -> mode (0/1)
@@ -533,7 +538,7 @@ cdef class Body:
         Set the finite rotation axis of the body.  This axis only has a
         meaning when the finite rotation mode is set
         (see setFiniteRotationMode()).
-        
+
         @param a: Axis
         @type a: 3-sequence of floats
         """
@@ -549,7 +554,7 @@ cdef class Body:
         # The "const" in the original return value is cast away
         dBodyGetFiniteRotationAxis(self.bid, p)
         return (p[0],p[1],p[2])
-        
+
     # getNumJoints
     def getNumJoints(self):
         """getNumJoints() -> int
@@ -570,7 +575,7 @@ cdef class Body:
         @type mode: bool
         """
         dBodySetGravityMode(self.bid, mode)
-        
+
     # getGravityMode
     def getGravityMode(self):
         """getGravityMode() -> bool
@@ -594,7 +599,7 @@ cdef class Body:
         Set the kinematic state of the body (change it into a kinematic body)
 
         Kinematic bodies behave as if they had infinite mass. This means they don't react
-        to any force (gravity, constraints or user-supplied); they simply follow 
+        to any force (gravity, constraints or user-supplied); they simply follow
         velocity to reach the next position. [from ODE wiki]
         """
         dBodySetKinematic(self.bid)
@@ -609,3 +614,19 @@ cdef class Body:
         velocity to reach the next position. [from ODE wiki]
         """
         return dBodyIsKinematic(self.bid)
+
+    def setMovedCallback(self, callback):
+        """setMovedCallback()
+
+        Use it to register a function callback that is invoked whenever the
+        body moves (that is, while it is not disabled).
+
+        This is useful for integrating ODE with 3D engines,
+        where 3D entities must be moved whenever a ODE body move.
+        """
+        self.callback = callback
+        dBodySetMovedCallback(self.bid, body_callback)
+
+cdef void body_callback(dBodyID body_id):
+    body = _geom_c2py_lut[<long>body_id]
+    body.callback(body)

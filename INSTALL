@@ -4,10 +4,10 @@ Installation instructions for all systems
 Requirements:
 -------------
 
-- Python v3.6 (or higher)
+- Python v3.7 (or higher)
   http://www.python.org/
 
-- ODE 0.7
+- ODE 0.16
   http://ode.org/
 
 - Cython 0.26.1
