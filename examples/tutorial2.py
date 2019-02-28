@@ -56,7 +56,7 @@ doc = '''<?xml version="1.0" encoding="iso-8859-1"?>
 
 def coord(x,y):
     "Convert world coordinates to pixel coordinates."
-    return 320+170*x, 400-170*y
+    return int(320+170*x), int(400-170*y)
 
 def buildObjects():
     world = ode.World()
