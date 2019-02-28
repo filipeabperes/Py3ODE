@@ -16,7 +16,7 @@
 # This library is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the files
-# LICENSE and LICENSE-BSD for more details. 
+# LICENSE and LICENSE-BSD for more details.
 ######################################################################
 
 # For every joint type there is a separate class that wraps that joint.
@@ -33,13 +33,15 @@
 
 ######################################################################
 
+from cpython.mem cimport PyMem_RawMalloc, PyMem_RawFree
+
 # JointGroup
 cdef class JointGroup:
     """Joint group.
 
     Constructor::
-    
-      JointGroup()    
+
+      JointGroup()
     """
 
     # JointGroup ID
@@ -129,7 +131,7 @@ cdef class Joint:
             return self.userattribs[name]
         except:
             raise AttributeError, "Joint object has no attribute '%s'"%name
-            
+
     def __setattr__(self, name, value):
         self.userattribs[name] = value
 
@@ -155,7 +157,7 @@ cdef class Joint:
 
         Attach the joint to some new bodies. A body can be attached
         to the environment by passing None as second body.
-        
+
         @param body1: First body
         @param body2: Second body
         @type body1: Body
@@ -167,7 +169,7 @@ cdef class Joint:
             id1 = NULL
         else:
             id1 = body1.bid
-            
+
         if body2==None:
             id2 = NULL
         else:
@@ -190,7 +192,7 @@ cdef class Joint:
         @param index: Bodx index (0 or 1).
         @type index: int
         """
-        
+
         if (index == 0):
             return self.body1
         elif (index == 1):
@@ -199,52 +201,59 @@ cdef class Joint:
             raise IndexError()
 
     # setFeedback
-    def setFeedback(self, flag=1):
-        """setFeedback(flag=True)
+    def setFeedback(self, release = False):
+        """setFeedback(release = True)
 
-        Create a feedback buffer. If flag is True then a buffer is
-        allocated and the forces/torques applied by the joint can
-        be read using the getFeedback() method. If flag is False the
-        buffer is released.
+        Sets the datastructure that is to receive the feedback.
 
-        @param flag: Specifies whether a buffer should be created or released
-        @type flag: bool
+        The feedback can be used by the user, so that it is known how
+        much force an individual joint exerts.
+
+        If release is True then a buffer is allocated and the forces/torques
+        applied by the joint can be read using the getFeedback() method.
+
+        If release is False the buffer is released.
+
+        @param release: Specifies whether a buffer should be created or released
+        @type release: bool
         """
-        
-        if flag:
-            # Was there already a buffer allocated? then we're finished
-            if self.feedback!=NULL:
+
+        if release:
+            if self.feedback != NULL:
                 return
-            # Allocate a buffer and pass it to ODE
-            self.feedback = <dJointFeedback*>malloc(sizeof(dJointFeedback))
-            if self.feedback==NULL:
-                raise MemoryError("can't allocate feedback buffer")
+
+            self.feedback = <dJointFeedback*> PyMem_RawMalloc(sizeof(dJointFeedback))
+            if self.feedback == NULL:
+                raise MemoryError("Couldn't allocate a new feedback buffer.")
+
             dJointSetFeedback(self.jid, self.feedback)
+
         else:
-            if self.feedback!=NULL:
-                # Free a previously allocated buffer
+            if self.feedback != NULL:
                 dJointSetFeedback(self.jid, NULL)
-                free(self.feedback)
+                PyMem_RawFree(self.feedback)
                 self.feedback = NULL
-        
+
     # getFeedback
     def getFeedback(self):
         """getFeedback() -> (force1, torque1, force2, torque2)
 
-        Get the forces/torques applied by the joint. If feedback is
-        activated (i.e. setFeedback(True) was called) then this method
-        returns a tuple (force1, torque1, force2, torque2) with the
-        forces and torques applied to body 1 and body 2.  The
-        forces/torques are given as 3-tuples.
+        Get the forces/torques applied by the joint.
+
+        If feedback is activated (i.e. setFeedback(True) was called) then this
+        method returns a tuple (force1, torque1, force2, torque2) with the
+        forces and torques applied to body 1 and body 2.
+
+        The forces/torques are given as 3-tuples.
 
         If feedback is deactivated then the method always returns None.
         """
         cdef dJointFeedback* fb
-        
+
         fb = dJointGetFeedback(self.jid)
-        if (fb==NULL):
+        if (fb == NULL):
             return None
-           
+
         f1 = (fb.f1[0], fb.f1[1], fb.f1[2])
         t1 = (fb.t1[0], fb.t1[1], fb.t1[2])
         f2 = (fb.f2[0], fb.f2[1], fb.f2[2])
@@ -259,8 +268,8 @@ cdef class BallJoint(Joint):
     """Ball joint.
 
     Constructor::
-    
-      BallJoint(world, jointgroup=None)    
+
+      BallJoint(world, jointgroup=None)
     """
 
     def __cinit__(self, World world not None, jointgroup=None):
@@ -277,7 +286,7 @@ cdef class BallJoint(Joint):
         self.world = world
         if jointgroup!=None:
             jointgroup._addjoint(self)
-            
+
     # setAnchor
     def setAnchor(self, pos):
         """setAnchor(pos)
@@ -286,10 +295,10 @@ cdef class BallJoint(Joint):
         coordinates.
 
         @param pos: Anchor position
-        @type pos: 3-sequence of floats         
+        @type pos: 3-sequence of floats
         """
         dJointSetBallAnchor(self.jid, pos[0], pos[1], pos[2])
-    
+
     # getAnchor
     def getAnchor(self):
         """getAnchor() -> 3-tuple of floats
@@ -298,7 +307,7 @@ cdef class BallJoint(Joint):
         returns the point on body 1.  If the joint is perfectly
         satisfied, this will be the same as the point on body 2.
         """
-        
+
         cdef dVector3 p
         dJointGetBallAnchor(self.jid, p)
         return (p[0],p[1],p[2])
@@ -315,7 +324,7 @@ cdef class BallJoint(Joint):
         cdef dVector3 p
         dJointGetBallAnchor2(self.jid, p)
         return (p[0],p[1],p[2])
-                
+
 
     # setParam
     def setParam(self, param, value):
@@ -324,27 +333,27 @@ cdef class BallJoint(Joint):
     # getParam
     def getParam(self, param):
         return 0.0
-        
-    
+
+
 # HingeJoint
 cdef class HingeJoint(Joint):
     """Hinge joint.
 
     Constructor::
-    
+
       HingeJoint(world, jointgroup=None)
     """
 
     def __cinit__(self, World world not None, jointgroup=None):
         cdef JointGroup jg
         cdef dJointGroupID jgid
-        
+
         jgid=NULL
         if jointgroup!=None:
             jg=jointgroup
             jgid=jg.gid
         self.jid = dJointCreateHinge(world.wid, jgid)
-        
+
     def __init__(self, World world not None, jointgroup=None):
         self.world = world
         if jointgroup!=None:
@@ -357,10 +366,10 @@ cdef class HingeJoint(Joint):
         Set the hinge anchor which must be given in world coordinates.
 
         @param pos: Anchor position
-        @type pos: 3-sequence of floats         
+        @type pos: 3-sequence of floats
         """
         dJointSetHingeAnchor(self.jid, pos[0], pos[1], pos[2])
-    
+
     # getAnchor
     def getAnchor(self):
         """getAnchor() -> 3-tuple of floats
@@ -395,7 +404,7 @@ cdef class HingeJoint(Joint):
         @type axis: 3-sequence of floats
         """
         dJointSetHingeAxis(self.jid, axis[0], axis[1], axis[2])
-    
+
     # getAxis
     def getAxis(self):
         """getAxis() -> 3-tuple of floats
@@ -418,7 +427,7 @@ cdef class HingeJoint(Joint):
         the attached bodies is examined and that position will be the
         zero angle.
         """
-        
+
         return dJointGetHingeAngle(self.jid)
 
     # getAngleRate
@@ -454,11 +463,11 @@ cdef class HingeJoint(Joint):
         or 3) to indicate the second or third set of parameters.
 
         @param param: Selects the parameter to set
-        @param value: Parameter value 
+        @param value: Parameter value
         @type param: int
         @type value: float
         """
-        
+
         dJointSetHingeParam(self.jid, param, value)
 
     # getParam
@@ -475,17 +484,17 @@ cdef class HingeJoint(Joint):
         or 3) to indicate the second or third set of parameters.
 
         @param param: Selects the parameter to read
-        @type param: int        
+        @type param: int
         """
         return dJointGetHingeParam(self.jid, param)
-        
-        
+
+
 # SliderJoint
 cdef class SliderJoint(Joint):
     """Slider joint.
-    
+
     Constructor::
-    
+
       SlideJoint(world, jointgroup=None)
     """
 
@@ -503,7 +512,7 @@ cdef class SliderJoint(Joint):
         self.world = world
         if jointgroup!=None:
             jointgroup._addjoint(self)
-          
+
     # setAxis
     def setAxis(self, axis):
         """setAxis(axis)
@@ -511,10 +520,10 @@ cdef class SliderJoint(Joint):
         Set the slider axis parameter.
 
         @param axis: Slider axis
-        @type axis: 3-sequence of floats        
+        @type axis: 3-sequence of floats
         """
         dJointSetSliderAxis(self.jid, axis[0], axis[1], axis[2])
-    
+
     # getAxis
     def getAxis(self):
         """getAxis() -> 3-tuple of floats
@@ -535,7 +544,7 @@ cdef class SliderJoint(Joint):
         bodies is examined and that position will be the zero
         position.
         """
-        
+
         return dJointGetSliderPosition(self.jid)
 
     # getPositionRate
@@ -564,15 +573,15 @@ cdef class SliderJoint(Joint):
     # getParam
     def getParam(self, param):
         return dJointGetSliderParam(self.jid, param)
-        
-    
+
+
 # UniversalJoint
 cdef class UniversalJoint(Joint):
     """Universal joint.
 
     Constructor::
-    
-      UniversalJoint(world, jointgroup=None)    
+
+      UniversalJoint(world, jointgroup=None)
     """
 
     def __cinit__(self, World world not None, jointgroup=None):
@@ -597,10 +606,10 @@ cdef class UniversalJoint(Joint):
         Set the universal anchor.
 
         @param pos: Anchor position
-        @type pos: 3-sequence of floats         
+        @type pos: 3-sequence of floats
         """
         dJointSetUniversalAnchor(self.jid, pos[0], pos[1], pos[2])
-    
+
     # getAnchor
     def getAnchor(self):
         """getAnchor() -> 3-tuple of floats
@@ -609,7 +618,7 @@ cdef class UniversalJoint(Joint):
         the point on body 1. If the joint is perfectly satisfied, this
         will be the same as the point on body 2.
         """
-        
+
         cdef dVector3 p
         dJointGetUniversalAnchor(self.jid, p)
         return (p[0],p[1],p[2])
@@ -622,7 +631,7 @@ cdef class UniversalJoint(Joint):
         the point on body 2. If the joint is perfectly satisfied, this
         will be the same as the point on body 1.
         """
-        
+
         cdef dVector3 p
         dJointGetUniversalAnchor2(self.jid, p)
         return (p[0],p[1],p[2])
@@ -638,7 +647,7 @@ cdef class UniversalJoint(Joint):
         @type axis: 3-sequence of floats
         """
         dJointSetUniversalAxis1(self.jid, axis[0], axis[1], axis[2])
-    
+
     # getAxis1
     def getAxis1(self):
         """getAxis1() -> 3-tuple of floats
@@ -657,10 +666,10 @@ cdef class UniversalJoint(Joint):
         perpendicular to each other.
 
         @param axis: Joint axis
-        @type axis: 3-sequence of floats        
+        @type axis: 3-sequence of floats
         """
         dJointSetUniversalAxis2(self.jid, axis[0], axis[1], axis[2])
-    
+
     # getAxis2
     def getAxis2(self):
         """getAxis2() -> 3-tuple of floats
@@ -689,7 +698,7 @@ cdef class UniversalJoint(Joint):
 
     def getAngle2(self):
         return dJointGetUniversalAngle2(self.jid)
-    
+
     def getAngle1Rate(self):
         return dJointGetUniversalAngle1Rate(self.jid)
 
@@ -704,13 +713,13 @@ cdef class UniversalJoint(Joint):
     def getParam(self, param):
         return dJointGetUniversalParam(self.jid, param)
 
-    
+
 # Hinge2Joint
 cdef class Hinge2Joint(Joint):
     """Hinge2 joint.
 
     Constructor::
-    
+
       Hinge2Joint(world, jointgroup=None)
     """
 
@@ -736,10 +745,10 @@ cdef class Hinge2Joint(Joint):
         Set the hinge-2 anchor.
 
         @param pos: Anchor position
-        @type pos: 3-sequence of floats        
+        @type pos: 3-sequence of floats
         """
         dJointSetHinge2Anchor(self.jid, pos[0], pos[1], pos[2])
-    
+
     # getAnchor
     def getAnchor(self):
         """getAnchor() -> 3-tuple of floats
@@ -748,7 +757,7 @@ cdef class Hinge2Joint(Joint):
         the point on body 1. If the joint is perfectly satisfied, this
         will be the same as the point on body 2.
         """
-        
+
         cdef dVector3 p
         dJointGetHinge2Anchor(self.jid, p)
         return (p[0],p[1],p[2])
@@ -761,7 +770,7 @@ cdef class Hinge2Joint(Joint):
         the point on body 2. If the joint is perfectly satisfied, this
         will be the same as the point on body 1.
         """
-        
+
         cdef dVector3 p
         dJointGetHinge2Anchor2(self.jid, p)
         return (p[0],p[1],p[2])
@@ -774,11 +783,11 @@ cdef class Hinge2Joint(Joint):
         along the same line.
 
         @param axis: Joint axis
-        @type axis: 3-sequence of floats        
+        @type axis: 3-sequence of floats
         """
-        
+
         dJointSetHinge2Axis1(self.jid, axis[0], axis[1], axis[2])
-    
+
     # getAxis1
     def getAxis1(self):
         """getAxis1() -> 3-tuple of floats
@@ -797,10 +806,10 @@ cdef class Hinge2Joint(Joint):
         along the same line.
 
         @param axis: Joint axis
-        @type axis: 3-sequence of floats        
+        @type axis: 3-sequence of floats
         """
         dJointSetHinge2Axis2(self.jid, axis[0], axis[1], axis[2])
-    
+
     # getAxis2
     def getAxis2(self):
         """getAxis2() -> 3-tuple of floats
@@ -860,14 +869,14 @@ cdef class Hinge2Joint(Joint):
     def getParam(self, param):
         return dJointGetHinge2Param(self.jid, param)
 
-    
+
 # FixedJoint
 cdef class FixedJoint(Joint):
     """Fixed joint.
 
     Constructor::
-    
-      FixedJoint(world, jointgroup=None)    
+
+      FixedJoint(world, jointgroup=None)
     """
 
     def __cinit__(self, World world not None, jointgroup=None):
@@ -895,13 +904,13 @@ cdef class FixedJoint(Joint):
         """
         dJointSetFixed(self.jid)
 
-        
+
 # ContactJoint
 cdef class ContactJoint(Joint):
     """Contact joint.
 
     Constructor::
-    
+
       ContactJoint(world, jointgroup, contact)
     """
 
@@ -922,9 +931,9 @@ cdef class ContactJoint(Joint):
 # AMotor
 cdef class AMotor(Joint):
     """AMotor joint.
-    
+
     Constructor::
-    
+
       AMotor(world, jointgroup=None)
     """
 
@@ -942,7 +951,7 @@ cdef class AMotor(Joint):
         self.world = world
         if jointgroup!=None:
             jointgroup._addjoint(self)
-            
+
     # setMode
     def setMode(self, mode):
         """setMode(mode)
@@ -992,9 +1001,9 @@ cdef class AMotor(Joint):
         The anum argument selects the axis to change (0,1 or 2).
         Each axis can have one of three "relative orientation" modes,
         selected by rel:
-        
-        0: The axis is anchored to the global frame. 
-        1: The axis is anchored to the first body. 
+
+        0: The axis is anchored to the global frame.
+        1: The axis is anchored to the first body.
         2: The axis is anchored to the second body.
 
         The axis vector is always specified in global coordinates
@@ -1016,7 +1025,7 @@ cdef class AMotor(Joint):
         Get an AMotor axis.
 
         @param anum: Axis index (0-2)
-        @type anum: int        
+        @type anum: int
         """
         cdef dVector3 a
         dJointGetAMotorAxis(self.jid, anum, a)
@@ -1029,7 +1038,7 @@ cdef class AMotor(Joint):
         Get the relative mode of an axis.
 
         @param anum: Axis index (0-2)
-        @type anum: int        
+        @type anum: int
         """
         return dJointGetAMotorAxisRel(self.jid, anum)
 
@@ -1053,7 +1062,7 @@ cdef class AMotor(Joint):
         Return the current angle for axis anum.
 
         @param anum: Axis index
-        @type anum: int        
+        @type anum: int
         """
         return dJointGetAMotorAngle(self.jid, anum)
 
@@ -1064,7 +1073,7 @@ cdef class AMotor(Joint):
         Return the current angle rate for axis anum.
 
         @param anum: Axis index
-        @type anum: int        
+        @type anum: int
         """
         return dJointGetAMotorAngleRate(self.jid, anum)
 
@@ -1095,9 +1104,9 @@ cdef class AMotor(Joint):
 # LMotor
 cdef class LMotor(Joint):
     """LMotor joint.
-    
+
     Constructor::
-    
+
       LMotor(world, jointgroup=None)
     """
 
@@ -1115,7 +1124,7 @@ cdef class LMotor(Joint):
         self.world = world
         if jointgroup!=None:
             jointgroup._addjoint(self)
-            
+
     # setNumAxes
     def setNumAxes(self, int num):
         """setNumAxes(num)
@@ -1146,8 +1155,8 @@ cdef class LMotor(Joint):
         Each axis can have one of three "relative orientation" modes,
         selected by rel:
 
-        0: The axis is anchored to the global frame. 
-        1: The axis is anchored to the first body. 
+        0: The axis is anchored to the global frame.
+        1: The axis is anchored to the first body.
         2: The axis is anchored to the second body.
 
         @param anum: Axis number
@@ -1166,7 +1175,7 @@ cdef class LMotor(Joint):
         Get an LMotor axis.
 
         @param anum: Axis index (0-2)
-        @type anum: int        
+        @type anum: int
         """
         cdef dVector3 a
         dJointGetLMotorAxis(self.jid, anum, a)
@@ -1186,8 +1195,8 @@ cdef class Plane2DJoint(Joint):
     """Plane-2D Joint.
 
     Constructor::
-    
-      Plane2DJoint(world, jointgroup=None)    
+
+      Plane2DJoint(world, jointgroup=None)
     """
 
     def __cinit__(self, World world not None, jointgroup=None):
@@ -1204,12 +1213,12 @@ cdef class Plane2DJoint(Joint):
         self.world = world
         if jointgroup!=None:
             jointgroup._addjoint(self)
-            
+
     def setXParam(self, param, value):
         dJointSetPlane2DXParam(self.jid, param, value)
-        
+
     def setYParam(self, param, value):
         dJointSetPlane2DYParam(self.jid, param, value)
-        
+
     def setAngleParam(self, param, value):
         dJointSetPlane2DAngleParam(self.jid, param, value)
