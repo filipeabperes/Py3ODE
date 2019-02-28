@@ -157,7 +157,7 @@ else:
 
 # Compile the module
 setup(name = "Py3ODE",
-     version = "1.2.0.dev9",
+     version = "1.2.0.dev12",
      description = "Port of PyODE for Python 3",
      author = "see file AUTHORS",
      author_email = "filipeabperes@gmail.com",
