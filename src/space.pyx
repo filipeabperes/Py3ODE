@@ -78,6 +78,8 @@ cdef class SpaceBase(GeomObject):
         if self.sid != NULL:
             dSpaceDestroy(self.sid)
             self.sid = NULL
+            self.gid = NULL
+
     def _id(self):
         cdef long id
         id = <long>self.sid
