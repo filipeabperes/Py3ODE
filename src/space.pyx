@@ -155,6 +155,35 @@ cdef class SpaceBase(GeomObject):
 
         return _geom_c2py_lut[<long>gid]
 
+    def setManualCleanup(self, int mode):
+        """setCleanup(int mode)
+
+        Sets manual cleanup flag for a space.
+
+        Manual cleanup flag marks a space as eligible for manual thread data cleanup.
+
+        This function should be called for every space object right after creation in
+        case if ODE has been initialized with the dInitFlagManualThreadCleanup flag.
+
+        Failure to set manual cleanup flag for a space may lead to some resources
+        remaining leaked until the program exit.
+
+        @param mode: The cleanup mode, 0 or 1
+        @type mode: int
+        """
+        # Check mode
+        if not (mode == 0 or mode == 1):
+            raise RuntimeError, "Cleanup mode needs to be either 0 or 1."
+
+        dSpaceSetManualCleanup(self.sid, mode)
+
+    def getManualCleanup(self):
+        """getManualCleanup() -> int
+
+        Get manual cleanup flag of a space.
+        """
+        return dSpaceGetManualCleanup(self.sid)
+
     def setCleanup(self, int mode):
       """setCleanup(int mode)
 
@@ -214,6 +243,13 @@ cdef class SpaceBase(GeomObject):
         Get the sublevel value for the space.
         """
         return dSpaceGetSublevel(self.sid)
+
+    def clean(self):
+        """clean()
+
+        Clean the space.
+        """
+        dSpaceClean(self.sid)
 
     def collide(self, arg, callback):
         """collide(arg, callback)
@@ -393,6 +429,49 @@ cdef class QuadTreeSpace(SpaceBase):
         _geom_c2py_lut[<long>self.sid]=self
 
     def __init__(self, center, extents, depth, space = None):
+        pass
+
+cdef class SAPSpace(SpaceBase):
+    """Sweep and prune space.
+
+    Culls collisions based on ODE's implementation of the sweep and prune algorithm.
+
+    sweep_order needs to be one of ["XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"]
+    othervise defaults to "XYZ".
+    """
+
+    def __cinit__(self, space = None, sweep_order = "XYZ"):
+        cdef SpaceBase sp
+        cdef dSpaceID parentid
+
+        parentid = NULL
+        if space != None:
+            sp = space
+            parentid = sp.sid
+
+        order_value = 52
+        if sweep_order == "XYZ":
+            order_value = 52
+        elif sweep_order == "XZY":
+            order_value = 24
+        elif sweep_order == "YXZ":
+            order_value = 33
+        elif sweep_order == "YZX":
+            order_value = 9
+        elif sweep_order == "ZXY":
+            order_value = 18
+        elif sweep_order == "ZYX":
+            order_value = 6
+
+        self.sid = dSweepAndPruneSpaceCreate(parentid, order_value)
+
+        # Copy the ID
+        self.gid = <dGeomID>self.sid
+
+        dSpaceSetCleanup(self.sid, 0)
+        _geom_c2py_lut[<long>self.sid]=self
+
+    def __init__(self, space = None, sweep_order = "XYZ"):
         pass
 
 def Space(space_type = 0):

@@ -124,8 +124,8 @@ cdef extern from "ode/ode.h":
         float reserve_factor
         unsigned reserve_minimum
 
-# I can't into structs in cython
-#    ctypedef struct dWorldStepMemoryFunctionsInfo:
+    ctypedef struct dWorldStepMemoryFunctionsInfo:
+        pass
 #        unsigned struct_size
 #        void *(*alloc_block)(dsizeint block_size)
 #        void *(*shrink_block)(void *block_pointer, dsizeint block_current_size, dsizeint block_smaller_size)
@@ -166,8 +166,7 @@ cdef extern from "ode/ode.h":
     int dWorldSetStepMemoryReservationPolicy(dWorldID w, const dWorldStepReserveInfo *policyinfo)
 
     # not present in the manual
-    # TODO: needs struct
-    #int dWorldSetStepMemoryManager(dWorldID w, const dWorldStepMemoryFunctionsInfo *memfuncs)
+    int dWorldSetStepMemoryManager(dWorldID w, const dWorldStepMemoryFunctionsInfo *memfuncs)
 
     # not present in the manual
     # TODO: no real idea where dThreadingImplementationID should come from
@@ -641,8 +640,15 @@ cdef extern from "ode/ode.h":
     # Space
     dSpaceID dSimpleSpaceCreate(dSpaceID space)
     dSpaceID dHashSpaceCreate(dSpaceID space)
-    dSpaceID dQuadTreeSpaceCreate (dSpaceID space, dVector3 Center,
-                                   dVector3 Extents, int Depth)
+    dSpaceID dQuadTreeSpaceCreate (dSpaceID space, dVector3 Center, dVector3 Extents, int Depth)
+    # not present in the manual
+    #define dSAP_AXES_XYZ  ((0)|(1<<2)|(2<<4)) - 0 | 100 | 110000 = 110100 = 4 + 16 + 32 = 52
+    #define dSAP_AXES_XZY  ((0)|(2<<2)|(1<<4)) - 0 | 1000 | 10000 = 11000 = 8 + 16 = 24
+    #define dSAP_AXES_YXZ  ((1)|(0<<2)|(2<<4)) - 1 | 000 | 100000 = 100001 = 1 + 32 = 33
+    #define dSAP_AXES_YZX  ((1)|(2<<2)|(0<<4)) - 1 | 1000 | 00000 = 01001 = 1 + 8 = 9
+    #define dSAP_AXES_ZXY  ((2)|(0<<2)|(1<<4)) - 10 | 000 | 10000 = 10010 = 2 + 16 = 18
+    #define dSAP_AXES_ZYX  ((2)|(1<<2)|(0<<4)) - 10 | 100 | 00000 = 00110 = 2 + 4 = 6
+    dSpaceID dSweepAndPruneSpaceCreate(dSpaceID space, int axisorder)
 
     void dSpaceDestroy (dSpaceID)
 
@@ -655,15 +661,22 @@ cdef extern from "ode/ode.h":
     void dSpaceSetSublevel (dSpaceID space, int sublevel)
     int dSpaceGetSublevel (dSpaceID space)
 
-    void dSpaceAdd (dSpaceID, dGeomID)
+    # not present in the manual
+    void dSpaceSetManualCleanup (dSpaceID space, int mode)
+    int dSpaceGetManualCleanup (dSpaceID space)
 
+    void dSpaceAdd (dSpaceID, dGeomID)
     void dSpaceRemove (dSpaceID, dGeomID)
 
     int dSpaceQuery (dSpaceID, dGeomID)
 
-    int dSpaceGetNumGeoms (dSpaceID)
+    # not present in the manual
+    void dSpaceClean (dSpaceID)
 
+    int dSpaceGetNumGeoms (dSpaceID)
     dGeomID dSpaceGetGeom (dSpaceID, int i)
+
+    int dSpaceGetClass(dSpaceID space)
 
     # Collision Detection
     int dCollide (dGeomID o1, dGeomID o2, int flags, dContactGeom *contact, int skip)
