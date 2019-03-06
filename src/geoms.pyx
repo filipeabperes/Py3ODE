@@ -16,7 +16,7 @@
 # This library is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the files
-# LICENSE and LICENSE-BSD for more details. 
+# LICENSE and LICENSE-BSD for more details.
 ######################################################################
 
 # The list of geom classes supported in ODE, and whether or not they
@@ -30,7 +30,7 @@ cdef class GeomSphere(GeomObject):
     This class represents a sphere centered at the origin.
 
     Constructor::
-    
+
       GeomSphere(space=None, radius=1.0)
     """
 
@@ -91,7 +91,7 @@ cdef class GeomSphere(GeomObject):
         """
         return dGeomSpherePointDepth(self.gid, p[0], p[1], p[2])
 
-                
+
 # GeomBox
 cdef class GeomBox(GeomObject):
     """Box geometry.
@@ -99,14 +99,14 @@ cdef class GeomBox(GeomObject):
     This class represents a box centered at the origin.
 
     Constructor::
-    
+
       GeomBox(space=None, lengths=(1.0, 1.0, 1.0))
     """
 
     def __cinit__(self, space=None, lengths=(1.0, 1.0, 1.0)):
         cdef SpaceBase sp
         cdef dSpaceID sid
-        
+
         sid=NULL
         if space!=None:
             sp = space
@@ -162,7 +162,7 @@ cdef class GeomPlane(GeomObject):
     If you call getBody() on this object it always returns ode.environment.
 
     Constructor::
-    
+
       GeomPlane(space=None, normal=(0,0,1), dist=0)
 
     """
@@ -170,7 +170,7 @@ cdef class GeomPlane(GeomObject):
     def __cinit__(self, space=None, normal=(0,0,1), dist=0):
         cdef SpaceBase sp
         cdef dSpaceID sid
-        
+
         sid=NULL
         if space!=None:
             sp = space
@@ -221,7 +221,7 @@ cdef class GeomCapsule(GeomObject):
     and centered at the origin.
 
     Constructor::
-    
+
       GeomCapsule(space=None, radius=0.5, length=1.0)
 
     The length parameter does not include the caps.
@@ -230,7 +230,7 @@ cdef class GeomCapsule(GeomObject):
     def __cinit__(self, space=None, radius=0.5, length=1.0):
         cdef SpaceBase sp
         cdef dSpaceID sid
-        
+
         sid=NULL
         if space!=None:
             sp = space
@@ -285,14 +285,14 @@ cdef class GeomCylinder(GeomObject):
     and centered at the origin.
 
     Constructor::
-    
+
       GeomCylinder(space=None, radius=0.5, length=1.0)
     """
 
     def __cinit__(self, space=None, radius=0.5, length=1.0):
         cdef SpaceBase sp
         cdef dSpaceID sid
-        
+
         sid=NULL
         if space!=None:
             sp = space
@@ -336,15 +336,15 @@ cdef class GeomRay(GeomObject):
     the geom's local Z-axis.
 
     Constructor::
-    
+
       GeomRay(space=None, rlen=1.0)
-    
+
     """
 
     def __cinit__(self, space=None, rlen=1.0):
         cdef SpaceBase sp
         cdef dSpaceID sid
-        
+
         sid=NULL
         if space!=None:
             sp = space
@@ -389,7 +389,7 @@ cdef class GeomRay(GeomObject):
         '''set(p, u)
 
         Set the position and rotation of a ray.
-        
+
         @param p: position
         @type p: 3-sequence of floats
         @param u: rotation
@@ -408,6 +408,58 @@ cdef class GeomRay(GeomObject):
         dGeomRayGet(self.gid, start, dir)
         return ((start[0],start[1],start[2]), (dir[0],dir[1],dir[2]))
 
+# GeomHeightfield
+cdef class GeomHeightfield(GeomObject):
+    """Heightfield object.
+
+    To construct the heightfield geom, you need a HeightfieldData object that
+    stores the heightfield data. This object has to be passed as the first
+    argument to the constructor.
+
+    NOTE:
+    Heightfields treat Y as the "UP" axis.
+    """
+    cdef HeightfieldData data
+
+    def __cinit__(self, HeightfieldData data not None, placeable = True, space = None):
+        cdef SpaceBase sp
+        cdef dSpaceID sid
+
+        self.data = data
+
+        sid = NULL
+        if space != None:
+            sp = space
+            sid = sp.sid
+        self.gid = dCreateHeightfield(sid, data.hfdid, <int> placeable)
+
+        _geom_c2py_lut[<long> self.gid] = self
+
+    def __init__(self, HeightfieldData data not None, placeable = True, space = None):
+        self.space = space
+        self.body = None
+        self.placeable = placeable
+
+    def placeable(self):
+        return self.placeable # GeomHeightfield can be set to be non-placeable which causes all attempts to apply transforms on it to fail
+
+    def _id(self):
+        cdef long id
+        id = <long> self.gid
+        return id
+
+    def setHeightfieldData(self, HeightfieldData data not None):
+        """
+
+        Assigns a dHeightfieldDataID to a heightfield geom.
+
+        Associates the given dHeightfieldDataID with a heightfield geom.
+        This is done without affecting the GEOM_PLACEABLE flag.
+
+        @param data: A HeightfieldData created by dGeomHeightfieldDataCreate
+        """
+        dGeomHeightfieldSetHeightfieldData(self.gid, data.hfdid)
+
 
 # GeomTransform
 cdef class GeomTransform(GeomObject):
@@ -418,8 +470,8 @@ cdef class GeomTransform(GeomObject):
     respect to its point of reference.
 
     Constructor::
-    
-      GeomTransform(space=None)    
+
+      GeomTransform(space=None)
     """
 
     cdef object geom
@@ -427,7 +479,7 @@ cdef class GeomTransform(GeomObject):
     def __cinit__(self, space=None):
         cdef SpaceBase sp
         cdef dSpaceID sid
-        
+
         sid=NULL
         if space!=None:
             sp = space
@@ -475,7 +527,7 @@ cdef class GeomTransform(GeomObject):
             raise ValueError, "The encapsulated geom was already inserted into a space."
         if dGeomGetBody(geom.gid)!=<dBodyID>0:
             raise ValueError, "The encapsulated geom is already associated with a body."
-        
+
         id = geom._id()
         dGeomTransformSetGeom(self.gid, <dGeomID>id)
         self.geom = geom
@@ -519,5 +571,3 @@ cdef class GeomTransform(GeomObject):
         to the transform object itself.
         """
         return dGeomTransformGetInfo(self.gid)
-
-

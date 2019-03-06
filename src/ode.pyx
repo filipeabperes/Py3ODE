@@ -16,11 +16,11 @@
 # This library is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the files
-# LICENSE and LICENSE-BSD for more details. 
+# LICENSE and LICENSE-BSD for more details.
 ######################################################################
 # Open Dynamics Engine
 # Copyright (c) 2001-2003, Russell L. Smith.
-# All rights reserved. 
+# All rights reserved.
 ####################################################################
 
 include "declarations.pyx"
@@ -33,7 +33,7 @@ include "declarations.pyx"
 __doc__ = """Python Open Dynamics Engine (ODE) wrapper.
 
 This module contains classes and functions that wrap the functionality
-of the Open Dynamics Engine (ODE) which can be found at 
+of the Open Dynamics Engine (ODE) which can be found at
 http://opende.sourceforge.net.
 
 There are the following classes and functions:
@@ -156,7 +156,7 @@ Infinity = dInfinity
 import weakref
 _geom_c2py_lut = weakref.WeakValueDictionary()
 
-# Mass 
+# Mass
 include "mass.pyx"
 
 # Contact
@@ -177,7 +177,8 @@ include "geomobject.pyx"
 # Space
 include "space.pyx"
 
-# Geom classes
+# Geom and support classes
+include "heightfielddata.pyx"
 include "geoms.pyx"
 
 # Include the generated trimesh switch file that either includes the real
@@ -185,9 +186,6 @@ include "geoms.pyx"
 # (trimesh_dummy.pyx) if trimesh support is not available/desired.
 include "_trimesh_switch.pyx"
 
-include "heightfielddata.pyx"
-include "heightfield.pyx"
-    
 def collide(geom1, geom2):
     """collide(geom1, geom2) -> contacts
 
@@ -214,7 +212,7 @@ def collide(geom1, geom2):
     @type geom2: GeomObject
     @returns: Returns a list of Contact objects.
     """
-    
+
     cdef dContactGeom c[150]
     cdef long id1
     cdef long id2
@@ -237,7 +235,7 @@ def collide(geom1, geom2):
 
 def collide2(geom1, geom2, arg, callback):
     """collide2(geom1, geom2, arg, callback)
-    
+
     Calls the callback for all potentially intersecting pairs that contain
     one geom from geom1 and one geom from geom2.
 
@@ -247,7 +245,7 @@ def collide2(geom1, geom2, arg, callback):
     @type geom2: GeomObject
     @param arg: A user argument that is passed to the callback function
     @param callback: Callback function
-    @type callback: callable    
+    @type callback: callable
     """
     cdef void* data
     cdef object tup
@@ -256,7 +254,7 @@ def collide2(geom1, geom2, arg, callback):
 
     id1 = geom1._id()
     id2 = geom2._id()
-    
+
     tup = (callback, arg)
     data = <void*>tup
     # collide_callback is defined in space.pyx
@@ -294,7 +292,7 @@ def CloseODE():
 def InitODE():
     '''InitODE()
 
-    Initialize some ODE internals. This will be called for you when you 
+    Initialize some ODE internals. This will be called for you when you
     "import ode", but you should call this again if you CloseODE().'''
     dInitODE()
 
