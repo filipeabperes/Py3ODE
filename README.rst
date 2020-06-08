@@ -13,7 +13,7 @@ Py3ODE
     :target: https://www.gnu.org/licenses/lgpl-2.1
 
  
-Py3ODE is a port of PyODE for Python 3.
+Py3ODE is a port of PyODE for Python 3. It is inteded for personal use, and thus comes with no guarantees on appropriate behavior.
 
 PyODE is a set of open-source Python bindings for The Open Dynamics Engine, an
 open-source physics engine. PyODE also includes an XODE parser.
